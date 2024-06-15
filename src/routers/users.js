@@ -1,5 +1,4 @@
-import { readFileSync } from 'node:fs';
-import { Router } from '../../core/index.js';
+import { Router, DBJson } from '../../core/index.js';
 
 const usersRouter = new Router();
 
@@ -8,9 +7,61 @@ usersRouter.get('/users', (request, response) => {
         'Content-type': 'application/json'
     });
 
-    const DBUsers = JSON.parse(readFileSync('./src/db/users.json', 'utf-8'));
+    const DBUsers = new DBJson('./src/db/users.json');
 
-    response.end(JSON.stringify(DBUsers));
+    response.end(JSON.stringify(DBUsers.getAll()));
+});
+
+usersRouter.post('/users', (request, response) => {
+    response.writeHead(200, {
+        'Content-type': 'application/json'
+    });
+
+    let data = '';
+
+    request
+        .on('data', (chunck) => {
+            data += chunck;
+        })
+        .on('end', () => {
+            const newUser = JSON.parse(data);
+
+            const DBUsers = new DBJson('./src/db/users.json');
+
+            const success = DBUsers.add(newUser);
+
+            if (success) {
+                response.end(JSON.stringify(DBUsers.getAll()));
+            } else {
+                response.end('Не удалось добавить пользователя');
+            }
+        });
+});
+
+usersRouter.delete('/users', (request, response) => {
+    response.writeHead(200, {
+        'Content-type': 'application/json'
+    });
+
+    let data = '';
+
+    request
+        .on('data', (chunck) => {
+            data += chunck;
+        })
+        .on('end', () => {
+            const payload = JSON.parse(data);
+
+            const DBUsers = new DBJson('./src/db/users.json');
+
+            const success = DBUsers.deleteById(payload.id);
+
+            if (success) {
+                response.end(JSON.stringify(DBUsers.getAll()));
+            } else {
+                response.end('Не удалось удалить пользователя');
+            }
+        });
 });
 
 usersRouter.get('/users-books-favorites', (request, response) => {
@@ -18,17 +69,17 @@ usersRouter.get('/users-books-favorites', (request, response) => {
         'Content-type': 'application/json'
     });
 
-    const DBUsersBooksFavorites = JSON.parse(readFileSync('./src/db/users-favorites.json', 'utf-8'));
-    const DBUsers = JSON.parse(readFileSync('./src/db/users.json', 'utf-8'));
-    const DBBooks = JSON.parse(readFileSync('./src/db/books.json', 'utf-8'));
+    const DBUsersBooksFavorites = new DBJson('./src/db/users-favorites.json');
+    const DBUsers = new DBJson('./src/db/users.json');
+    const DBBooks = new DBJson('./src/db/books.json');
 
-    const result = DBUsersBooksFavorites.map(userBooks => {
+    const result = DBUsersBooksFavorites.getAll().map(userBooks => {
         const userId = userBooks.userId;
         const booksIds = userBooks.books;
 
-        const user = DBUsers.find(user => user.id === userId);
+        const user = DBUsers.findById(userId);
 
-        const books = DBBooks.filter(task => {
+        const books = DBBooks.getAll().filter(task => {
             return booksIds.includes(task.id);
         });
 
