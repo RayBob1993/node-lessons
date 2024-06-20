@@ -1,0 +1,10 @@
+[
+    {
+        "productId": 1,
+        "reviews": [1,2,3,4]
+    },
+    {
+        "productId": 1,
+        "reviews": [5]
+    }
+]

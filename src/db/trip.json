@@ -1,0 +1,12 @@
+[
+    {
+        "id": 1,
+        "name": "",
+        "description": "",
+        "warningDescription": "",
+        "users": [1,2,3,4],
+        "dateStart": "",
+        "dateEnd": "",
+        "requiredDescription": ""
+    }
+]
